@@ -8,26 +8,37 @@
 #include <sys/stat.h>
 
 #define FILENAME "file.txt"
+#define TARGETFILE "target.txt"
+#define FILESIZE 1000 //amount of "data" default: 10 000 000
+
+char * data = "0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999";
+
+int createFile(char * filename, struct stat * stats)
+{
+	int fd = open(filename, O_RDWR | O_APPEND | O_CREAT);
+	if(fd <= 0){
+		printf("File \"%s\" open't\n", FILENAME);
+	}else{
+		fstat(fd, stats);
+		printf("File \"%s\" opened. Size: %jd bytes\n", filename, stats->st_size);
+	}
+	return fd;
+}
 
 int main()
 {
-	char * data = "1234567890111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999";
-	int sizeF = 0;
-	int fd = open(FILENAME, O_WRONLY | O_APPEND | O_CREAT);
-	if(fd <= 0){
-		printf("File open't\n");
-		return 0;
-	}else{
-		struct stat stats;
-		fstat(fd, &stats);
-		sizeF = stats.st_size;
-		printf("File \"%s\" opened. Size: %jd bytes\n", FILENAME, stats.st_size);
+	struct stat statsIn, statsTr;
+	int fdIn = createFile(FILENAME, &statsIn);
+	int fSizeIn = 0;
+	if(fdIn >= 0){
+		fSizeIn = statsIn.st_size;
+		for (unsigned long long int i=fSizeIn/100; i<FILESIZE; i++){
+			write(fdIn, data, 100*sizeof(char));
+		}
+		printf("File \"%s\" ready. Size: %jd bytes\n", FILENAME, statsIn.st_size);
 	}
-	
-	for (unsigned long long int i=sizeF/100; i<10000000; i++){
-		write(fd, data, 100*sizeof(char) );
-	}
-	printf("File \"%s\" generated\n", FILENAME);
+
+	int fdTr = createFile(TARGETFILE, &statsTr);
 	
 	return 0;
 }
