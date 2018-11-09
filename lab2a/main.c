@@ -9,25 +9,13 @@
 
 #define FILENAME "file.txt"
 #define TARGETFILE "target.txt"
-#define FILESIZE 1000000 //amount of "data" default: 10 000 000 (GIGABYTE)
+#define FILESIZE 1000 //amount of "data" default: 10 000 000 (GIGABYTE)
 
 char * data = "0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999";
 
-int createFile(char * filename, struct stat * stats)
-{
-	int fd = open(filename, O_RDWR | O_APPEND | O_CREAT);
-	if(fd <= 0){
-		printf("File \"%s\" open't\n", filename);
-	}else{
-		fstat(fd, stats);
-		printf("File \"%s\" opened. Size: %jd bytes\n", filename, stats->st_size);
-		fchmod(fd, S_IRUSR | S_IWUSR);
-	}
-	return fd;
-}
-
 void copyFile(int fdSr, int fdTr, int blocksize)
 {
+	lseek(fdSr, SEEK_SET, 0);
 	char * buf = calloc(blocksize, sizeof(char));
 	ssize_t bufAm = read(fdSr, buf, blocksize);
 	do{
@@ -39,7 +27,14 @@ void copyFile(int fdSr, int fdTr, int blocksize)
 int main()
 {
 	struct stat statsIn, statsTr;
-	int fdIn = createFile(FILENAME, &statsIn);
+	int fdIn = open(FILENAME, O_RDWR | O_APPEND | O_CREAT);
+	if(fdIn <= 0){
+		printf("File \"%s\" open't\n", FILENAME);
+	}else{
+		fstat(fdIn, &statsIn);
+		printf("File \"%s\" opened. Size: %jd bytes\n", FILENAME, statsIn.st_size);
+		fchmod(fdIn, S_IRUSR | S_IWUSR);
+	}
 
 	if (fdIn < 0){
 		return 0;
@@ -54,20 +49,15 @@ int main()
 		printf("File \"%s\" ready. Size: %jd bytes\n", FILENAME, statsIn.st_size);
 	}
 
-	int fdTr = createFile(TARGETFILE, &statsTr);
+	int fdTr = open(TARGETFILE, O_RDWR | O_CREAT | O_TRUNC);
+	fchmod(fdTr, S_IRUSR | S_IWUSR);
 	if(fdTr < 0){
+		close(fdIn);
 		return 0;
 	}
-
+	fstat(fdTr, &statsTr);
 	int fSizeTr = statsTr.st_size;
-	
-	if(fSizeTr != 0){	//O_TRUNC
-		close(fdTr);
-		remove(TARGETFILE);
-		printf("Target removed\n");
-		fdTr = createFile(TARGETFILE, &statsTr);
-	}
-	
+	printf("\"%s\" size: %d\n", TARGETFILE, fSizeTr );
 	
 	printf("Start copying\n");
 	copyFile(fdIn, fdTr, 100);
