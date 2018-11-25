@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -38,6 +39,8 @@ void copyFile(int fdSr, int fdTr, int blocksize)
 
 int main()
 {
+	long int ttime;
+	long int st;// = time(NULL);
 	struct stat statsIn, statsTr;
 	int fdIn = createFile(FILENAME, &statsIn);
 
@@ -51,6 +54,7 @@ int main()
 			write(fdIn, data, 100*sizeof(char));
 		}
 		fstat(fdIn, &statsIn);
+		lseek(fdIn,0,0);
 		printf("File \"%s\" ready. Size: %jd bytes\n", FILENAME, statsIn.st_size);
 	}
 
@@ -70,9 +74,10 @@ int main()
 	
 	
 	printf("Start copying\n");
+	st = time(NULL);
 	copyFile(fdIn, fdTr, 100);
 	fstat(fdTr, &statsTr);
-	printf("Copying \"%s\" to \"%s\" completed.\n\"%s\" size: %jd", FILENAME, TARGETFILE, TARGETFILE, statsTr.st_size);
+	printf("Copying \"%s\" to \"%s\" completed.\n\"%s\" size: %jd\nTime: %ld sec", FILENAME, TARGETFILE, TARGETFILE, statsTr.st_size, time(&ttime)-st);
 
 	close(fdIn);
 	close(fdTr);
