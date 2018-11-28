@@ -7,7 +7,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <io.h>
 
 #define SOURCE_FILE "source.txt"
 #define TARGET_FILE "target.txt"

@@ -30,14 +30,14 @@ int myls(struct dirent * dirr)
 	printf((S.st_mode & S_IROTH)?"r":"-");
 	printf((S.st_mode & S_IWOTH)?"w":"-");
 	printf((S.st_mode & S_IXOTH)?"x":"-");
-	printf(" %1hu", S.st_nlink);
+	printf(" %1d", S.st_nlink);
 	struct passwd * pwd;
 	pwd = getpwuid(S.st_uid);
 	printf(" %s", pwd->pw_name);
 	struct group * grp;
 	grp = getgrgid(S.st_gid);
 	printf(" %s", grp->gr_name);
-	printf(" %5jd ", S.st_size);
+	printf(" %5d ", (int)S.st_size);
 	struct tm * time_ptr;
 	time_t It = S.st_ctime;
 	time_ptr = localtime(&It);
