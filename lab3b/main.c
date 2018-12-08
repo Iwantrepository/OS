@@ -17,22 +17,23 @@ int main()
 
 	pid_t pid = fork();
 	if(pid == 0){	//CHILD - source
-		printf("CHILD +\n");
+		printf("CHILD: put sys time in pipe\n");
 
 		close(fd[0]);
 		time_t data = time(0);
 		write(fd[1], &data, sizeof(time_t));
 		close(fd[1]);
 
-		printf("CHILD -\n");
+		printf("CHILD: process terminated\n");
 		exit(0);
 	}else{		//PARENT - target
-		printf("PARENT +\n");
+		sleep(1);
+		printf("PARENT: get sys time from pipe\n");
 
 		close(fd[1]);
 		time_t buf;
 		read(fd[0], &buf, sizeof(time_t));
-		printf("PARENT -\n%s\n", ctime(&buf));
+		printf("PARENT: %s\n", ctime(&buf));
 	}
 	return 0;
 }
