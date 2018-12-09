@@ -16,21 +16,21 @@ int main()
 	int shmid;
 	shmid = (shmget(2002, 32, 0666));
 
-		if( shmid == -1 ){
-                printf("Can't open shared memory\n");
-                exit(0);
-        }
+	if( shmid == -1 ){
+        printf("Can't open shared memory\n");
+        exit(0);
+    }
 
-        if((addr = shmat( shmid, NULL, 0 )) == (char*)-1){
-                printf("Shmat err\n");
-                exit(0);
-        }
+    if((addr = shmat( shmid, NULL, 0 )) == (char*)-1){
+		printf("Shmat err\n");
+        exit(0);
+    }
 
 
 
-        while(1){
-                printf("%s", addr);
-                sleep(1);
-        }
-        return 0;
+    while(1){
+        printf("%s", addr);
+        sleep(1);
+    }
+    return 0;
 }

@@ -12,29 +12,29 @@
 
 int main()
 {
-        char * addr;
-        //key_t key = ftok(FILE, 7);
-        int shmid;
-        shmid = (shmget(2002, 32, IPC_CREAT | 0666));
+    char * addr;
+    int shmid;
+    shmid = (shmget(2002, 32, IPC_CREAT | 0666));
 
-        if( shmid == -1 ){
-                printf("Can't create shared memory\n");
-                exit(0);
-        }
+    if( shmid == -1 ){
+        printf("Can't create shared memory\n");
+        exit(0);
+    }
 
-        if((addr = shmat( shmid, NULL, 0 )) == (char*)-1){
-                printf("Shmat err\n");
-        }
+    if((addr = shmat( shmid, NULL, 0 )) == (char*)-1){
+            printf("Shmat err\n");
+			exit(0);
+	}
 
-        time_t timer = time(0);
-        time_t buft = timer;
-        while(1){
-                timer = time(0);
-                if(timer != buft){
-                        buft = timer;
-                        sprintf(addr, "%s", ctime(&timer));
-                }
-        }
+    time_t timer = time(0);
+    time_t buft = timer;
+    while(1){
+            timer = time(0);
+            if(timer != buft){
+                    buft = timer;
+                    sprintf(addr, "%s", ctime(&timer));
+            }
+    }
 
-        return 0;
+    return 0;
 }
