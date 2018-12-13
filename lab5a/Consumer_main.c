@@ -9,15 +9,16 @@
 #include <sys/types.h>
 #include <sys/sem.h>
 
-#define FILE "Producer_main.c"
+#define FILE "Makefile"
 
 struct sembuf sem_lock = {0,-1,0}, sem_open = {0,1,0};
 
 int main()
 {
         char * addr;
+        key_t semkey = ftok("/tmp", 'a');
         int shmid = (shmget(2002, 32, 0666));
-        int semid = (semget(2003, 1, 0666));
+        int semid = (semget(semkey, 1, 0666));
         if(semid == -1){
                 printf("Sem open err\n");
                 exit(0);
@@ -39,7 +40,7 @@ int main()
                 semop(semid, &sem_lock, 1);
                 printf("%s", addr);
                 semop(semid, &sem_open, 1);
-                sleep(1);
+				sleep(0.5);
         }
         return 0;
 }
