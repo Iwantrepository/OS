@@ -39,6 +39,7 @@ int generate_source_file()
 		printf("Starting generating file %s\n", SOURCE_FILE);
 		for(int i=0; i< FILE_SIZE/BUFFER_SIZE; i++){
 			write(fd, buff, BUFFER_SIZE);
+			printf("%d/10 of file generated\n", i+1);
 		}	
 	}
 	printf("File %s generated\n", SOURCE_FILE);
