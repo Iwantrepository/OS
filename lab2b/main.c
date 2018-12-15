@@ -11,8 +11,8 @@
 #define SOURCE_FILE "source.txt"
 #define TARGET_FILE "target.txt"
 
-#define FILE_SIZE 200000000 //100000000 ~ 100mb
-#define BUFFER_SIZE 1000
+#define FILE_SIZE 100000000 //100000000 ~ 100mb
+#define BUFFER_SIZE 10000000
 
 int fd_set_blocking(int fd, int blocking)
 {
@@ -70,7 +70,7 @@ int source_to_target_copy()
 	int wfd = open(TARGET_FILE, O_RDWR | O_NONBLOCK);
 
 	if( rfd<0 || wfd<0 ){
-		printf("*panic*");
+		printf("Can't open files");
 		return -1;
 	}
 	
@@ -88,6 +88,7 @@ int source_to_target_copy()
 	tv.tv_usec = 0;
 
 	int ret;
+	int i=0;
 	ssize_t buf_amount;
 
 	if( (ret = select(maxfd+1, &wfds, &rfds, NULL, &tv)) == -1 ){
@@ -99,8 +100,10 @@ int source_to_target_copy()
 
 			buf_amount = read(rfd, buff, BUFFER_SIZE);
 			do{
+				i++;
 				write(wfd, buff, buf_amount);
 				buf_amount = read(rfd, buff, BUFFER_SIZE);
+				printf("%d/10 of file copied\n", i);
 			}while(buf_amount);
 		}
 		if( FD_ISSET( wfd, &wfds ) ){ //write
@@ -116,17 +119,23 @@ int source_to_target_copy()
 
 int main(void)
 {
-	if(generate_source_file() == -1){
-		printf("Can't open %s", SOURCE_FILE);
-		exit(0);
-	}
 	if(create_target_file() == -1){
 		printf("Can't create %s", TARGET_FILE);
 		exit(0);
 	}
-	if(source_to_target_copy() == -1){
-		printf("Copying failed");
-		exit(0);
+	
+	pid_t pid = fork();
+	if(pid == 0){	//CHILD
+		if(source_to_target_copy() == -1){
+			printf("Copying failed");
+			exit(0);
+		}
 	}
-	exit(0);
+	else{	//PARENT
+		if(generate_source_file() == -1){
+			printf("Can't open %s", SOURCE_FILE);
+			exit(0);
+		}
+	}
+	return 0;
 }
