@@ -8,68 +8,103 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#define FILENAME "file.txt"
-#define TARGETFILE "target.txt"
-#define FILESIZE 1000000 //amount of "data" default: 10 000 000 (GIGABYTE)
+#define SOURCE_FILE "source.txt"
+#define TARGET_FILE "target.txt"
 
-char * data = "0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999";
+#define FILE_SIZE 100000000 //100000000 ~ 100mb
+#define BUFFER_SIZE 10000000
 
-void copyFile(int fdSr, int fdTr, int blocksize)
+int generate_source_file()
 {
-	lseek(fdSr, SEEK_SET, 0);
-	char * buf = calloc(blocksize, sizeof(char));
-	ssize_t bufAm = read(fdSr, buf, blocksize);
-	do{
-		write(fdTr, buf, bufAm);
-		bufAm = read(fdSr, buf, blocksize);
-	}while(bufAm);
+	int fd;
+	char * buff = (char*)calloc(BUFFER_SIZE, sizeof(char));
+	
+	for (int i=0; i<BUFFER_SIZE; i++)	//generating buffer
+		buff[i] = '0'+i%10;
+
+	if((fd=open(SOURCE_FILE, O_RDWR | O_TRUNC | O_CREAT)) < 0){
+		return -1;
+	}else{
+		printf("Starting generating file %s\n", SOURCE_FILE);
+		for(int i=0; i< FILE_SIZE/BUFFER_SIZE; i++){
+			write(fd, buff, BUFFER_SIZE);
+			printf("%d/10 of file generated\n", i+1);
+		}	
+	}
+	printf("File %s generated\n", SOURCE_FILE);
+	close(fd);
+	return 0;
 }
 
-int main()
+int create_target_file()
 {
-	long int ttime;
-	long int st;// = time(NULL);
-	struct stat statsIn, statsTr;
-	int fdIn = open(FILENAME, O_RDWR | O_APPEND | O_CREAT);
-	if(fdIn <= 0){
-		printf("File \"%s\" open't\n", FILENAME);
-	}else{
-		fstat(fdIn, &statsIn);
-		printf("File \"%s\" opened. Size: %jd bytes\n", FILENAME, statsIn.st_size);
-		fchmod(fdIn, S_IRUSR | S_IWUSR);
+	int fd;
+	if((fd=open(TARGET_FILE, O_RDWR | O_TRUNC | O_CREAT)) < 0)
+		return -1;
+	close(fd);
+	printf("File %s created\n", TARGET_FILE);
+	return 0;
+}
+
+int source_to_target_copy()
+{
+	fd_set rfds;
+	fd_set wfds;
+
+	FD_ZERO( &rfds );
+	FD_ZERO( &wfds );
+
+
+	int rfd = open(SOURCE_FILE, O_RDWR);
+	int wfd = open(TARGET_FILE, O_RDWR);
+
+	if( rfd<0 || wfd<0 ){
+		printf("Can't open files");
+		return -1;
 	}
 
-	if (fdIn < 0){
-		return 0;
-	}
-
-	int fSizeIn = statsIn.st_size;
-	if(fSizeIn < FILESIZE*100){
-		for (unsigned long long int i=fSizeIn/100; i<FILESIZE; i++){
-			write(fdIn, data, 100*sizeof(char));
-		}
-		fstat(fdIn, &statsIn);
-		lseek(fdIn,0,0);
-		printf("File \"%s\" ready. Size: %jd bytes\n", FILENAME, statsIn.st_size);
-	}
-
-	int fdTr = open(TARGETFILE, O_RDWR | O_CREAT | O_TRUNC);
-	fchmod(fdTr, S_IRUSR | S_IWUSR);
-	if(fdTr < 0){
-		close(fdIn);
-		return 0;
-	}
-	fstat(fdTr, &statsTr);
-	int fSizeTr = statsTr.st_size;
-	printf("\"%s\" size: %d\n", TARGETFILE, fSizeTr );
+	char * buff = (char*)calloc(BUFFER_SIZE, sizeof(char));
 	
-	printf("Start copying\n");
-	st = time(NULL);
-	copyFile(fdIn, fdTr, 100);
-	fstat(fdTr, &statsTr);
-	printf("Copying \"%s\" to \"%s\" completed.\n\"%s\" size: %jd\nTime: %ld sec", FILENAME, TARGETFILE, TARGETFILE, statsTr.st_size, time(&ttime)-st);
 
-	close(fdIn);
-	close(fdTr);
+	int i=0;
+	ssize_t buf_amount;
+
+	buf_amount = read(rfd, buff, BUFFER_SIZE);
+	do{
+		i++;
+		write(wfd, buff, buf_amount);
+		buf_amount = read(rfd, buff, BUFFER_SIZE);
+		printf("%d/10 of file copied\n", i);
+	}while(buf_amount);
+	
+
+
+	close(rfd);
+	close(wfd);
+	printf("File %s copied\n", SOURCE_FILE);
+	return(0);
+}
+
+int main(void)
+{
+	if(create_target_file() == -1){
+		printf("Can't create %s", TARGET_FILE);
+		exit(0);
+	}
+	
+	pid_t pid = fork();
+	if(pid == 0){	//CHILD
+		sleep(1);
+		if(source_to_target_copy() == -1){
+			printf("Copying failed");
+			exit(0);
+		}
+	}
+	else{	//PARENT
+		if(generate_source_file() == -1){
+			printf("Can't open %s", SOURCE_FILE);
+			exit(0);
+		}
+	}
 	return 0;
 }
