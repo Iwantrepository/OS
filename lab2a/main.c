@@ -22,7 +22,7 @@ int generate_source_file()
 	for (int i=0; i<BUFFER_SIZE; i++)	//generating buffer
 		buff[i] = '0'+i%10;
 
-	if((fd=open(SOURCE_FILE, O_RDWR | O_TRUNC | O_CREAT)) < 0){
+	if((fd=open(SOURCE_FILE, O_WRONLY | O_TRUNC | O_CREAT)) < 0){
 		return -1;
 	}else{
 		printf("Starting generating file %s\n", SOURCE_FILE);
@@ -36,16 +36,6 @@ int generate_source_file()
 	return 0;
 }
 
-int create_target_file()
-{
-	int fd;
-	if((fd=open(TARGET_FILE, O_RDWR | O_TRUNC | O_CREAT)) < 0)
-		return -1;
-	close(fd);
-	printf("File %s created\n", TARGET_FILE);
-	return 0;
-}
-
 int source_to_target_copy()
 {
 	fd_set rfds;
@@ -55,8 +45,8 @@ int source_to_target_copy()
 	FD_ZERO( &wfds );
 
 
-	int rfd = open(SOURCE_FILE, O_RDWR);
-	int wfd = open(TARGET_FILE, O_RDWR);
+	int rfd = open(SOURCE_FILE, O_RDONLY);
+	int wfd = open(TARGET_FILE, O_WRONLY | O_TRUNC | O_CREAT);
 
 	if( rfd<0 || wfd<0 ){
 		printf("Can't open files");
@@ -87,11 +77,6 @@ int source_to_target_copy()
 
 int main(void)
 {
-	if(create_target_file() == -1){
-		printf("Can't create %s", TARGET_FILE);
-		exit(0);
-	}
-	
 	pid_t pid = fork();
 	if(pid == 0){	//CHILD
 		sleep(1);
