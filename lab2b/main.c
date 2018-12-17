@@ -47,15 +47,6 @@ int generate_source_file()
 	return 0;
 }
 
-int create_target_file()
-{
-	int fd;
-	if((fd=open(TARGET_FILE, O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK)) < 0)
-		return -1;
-	close(fd);
-	printf("File %s created\n", TARGET_FILE);
-	return 0;
-}
 
 int source_to_target_copy()
 {
@@ -67,8 +58,8 @@ int source_to_target_copy()
 
 	struct timeval tv;
 
-	int rfd = open(SOURCE_FILE, O_RDWR | O_NONBLOCK);
-	int wfd = open(TARGET_FILE, O_RDWR | O_NONBLOCK);
+	int rfd = open(SOURCE_FILE, O_RDONLY | O_CREAT);
+	int wfd = open(TARGET_FILE, O_WRONLY | O_TRUNC | O_CREAT);
 
 	if( rfd<0 || wfd<0 ){
 		printf("Can't open files");
@@ -120,13 +111,9 @@ int source_to_target_copy()
 
 int main(void)
 {
-	if(create_target_file() == -1){
-		printf("Can't create %s", TARGET_FILE);
-		exit(0);
-	}
-	
 	pid_t pid = fork();
 	if(pid == 0){	//CHILD
+		sleep(1);
 		if(source_to_target_copy() == -1){
 			printf("Copying failed");
 			exit(0);
