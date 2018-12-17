@@ -29,7 +29,8 @@ int change_storage(int * addr, int num)
 void* producer(void *args) {
         int * addr;
         int shmid;
-        shmid = (shmget(2002, 2*sizeof(int), IPC_CREAT | 0666));
+	key_t semkey = ftok("/tmp", 'a');
+        shmid = (shmget(semkey, 2*sizeof(int), IPC_CREAT | 0666));
 
         if( shmid == -1 ){
                 printf("Can't create shared memory\n");
@@ -76,7 +77,8 @@ int main() {
 
         int * addr;
         int shmid;
-        shmid = (shmget(2002, 2*sizeof(int), 0666));
+	key_t semkey = ftok("/tmp", 'a');
+        shmid = (shmget(semkey, 2*sizeof(int), 0666));
         if( shmid == -1 ){
                 printf("Can't open shared memory\n");
                 exit(0);
