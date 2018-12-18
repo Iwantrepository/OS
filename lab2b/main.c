@@ -33,7 +33,7 @@ int generate_source_file()
 	for (int i=0; i<BUFFER_SIZE; i++)	//generating buffer
 		buff[i] = '0'+i%10;
 
-	if((fd=open(SOURCE_FILE, O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK)) < 0){
+	if((fd=open(SOURCE_FILE, O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK, 0777)) < 0){
 		return -1;
 	}else{
 		printf("Starting generating file %s\n", SOURCE_FILE);
@@ -59,12 +59,16 @@ int source_to_target_copy()
 	struct timeval tv;
 
 	int rfd = open(SOURCE_FILE, O_RDONLY | O_CREAT);
-	int wfd = open(TARGET_FILE, O_WRONLY | O_TRUNC | O_CREAT);
+	int wfd = open(TARGET_FILE, O_WRONLY | O_TRUNC | O_CREAT, 0777);
 
-	if( rfd<0 || wfd<0 ){
-		printf("Can't open files");
+	if( wfd<0 ){
+		printf("Can't open file wfd\n");
 		return -1;
 	}
+	if( rfd<0 ){
+                printf("Can't open file rfd\n");
+                return -1;
+        }
 	
 	fd_set_blocking(rfd, 0);
 	fd_set_blocking(wfd, 0);
