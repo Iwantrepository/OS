@@ -22,7 +22,7 @@ int generate_source_file()
 	for (int i=0; i<BUFFER_SIZE; i++)	//generating buffer
 		buff[i] = '0'+i%10;
 
-	if((fd=open(SOURCE_FILE, O_WRONLY | O_TRUNC | O_CREAT, 0777)) < 0){
+	if((fd=open(SOURCE_FILE, O_WRONLY | O_TRUNC | O_CREAT, S_IWRITE|S_IREAD)) < 0){
 		return -1;
 	}else{
 		printf("Starting generating file %s\n", SOURCE_FILE);
@@ -39,7 +39,7 @@ int generate_source_file()
 int source_to_target_copy()
 {
 	int rfd = open(SOURCE_FILE, O_RDONLY);
-	int wfd = open(TARGET_FILE, O_WRONLY | O_TRUNC | O_CREAT, 0777);
+	int wfd = open(TARGET_FILE, O_WRONLY | O_TRUNC | O_CREAT, S_IWRITE|S_IREAD);
 
 	if(wfd<0){
 		printf("Can't open file wfd\n");
